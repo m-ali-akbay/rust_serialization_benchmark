@@ -11,6 +11,8 @@ use rust_serialization_benchmark::bench_bincode1;
 use rust_serialization_benchmark::bench_bitcode;
 #[cfg(feature = "borsh")]
 use rust_serialization_benchmark::bench_borsh;
+#[cfg(feature = "byten")]
+use rust_serialization_benchmark::bench_byten;
 #[cfg(feature = "capnp")]
 use rust_serialization_benchmark::bench_capnp;
 #[cfg(feature = "cbor4ii")]
@@ -100,6 +102,9 @@ fn bench_log(c: &mut Criterion) {
 
     #[cfg(feature = "borsh")]
     bench_borsh::bench(BENCH, c, &data);
+
+    #[cfg(feature = "byten")]
+    bench_byten::bench_borrowable(BENCH, c, &data);
 
     #[cfg(feature = "serde-brief")]
     bench_serde_brief::bench_borrowable(BENCH, c, &data);

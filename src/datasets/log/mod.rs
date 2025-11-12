@@ -33,6 +33,10 @@ use crate::bench_protobuf;
 use crate::datasets::BorrowableData;
 use crate::Generate;
 
+// TODO: this is needed due to a bug in the derive macro of byten
+#[cfg(feature = "byten")]
+use byten::MeasureFixed as _;
+
 #[derive(Clone, Copy, PartialEq)]
 #[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::Decode))]
 #[cfg_attr(feature = "bitcode", derive(bitcode::Encode, bitcode::Decode))]
@@ -40,6 +44,7 @@ use crate::Generate;
     feature = "borsh",
     derive(borsh::BorshSerialize, borsh::BorshDeserialize)
 )]
+#[cfg_attr(feature = "byten", derive(byten::DefaultCodec, byten::DecodeOwned, byten::Encode, byten::MeasureFixed))]
 #[cfg_attr(feature = "databuf", derive(databuf::Encode, databuf::Decode))]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 #[cfg_attr(feature = "msgpacker", derive(msgpacker::MsgPacker))]
@@ -223,6 +228,7 @@ impl From<log_protobuf::log::Address> for Address {
     feature = "borsh",
     derive(borsh::BorshSerialize, borsh::BorshDeserialize)
 )]
+#[cfg_attr(feature = "byten", derive(byten::DefaultCodec, byten::DecodeOwned, byten::Encode, byten::Measure))]
 #[cfg_attr(feature = "databuf", derive(databuf::Encode, databuf::Decode))]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 #[cfg_attr(feature = "msgpacker", derive(msgpacker::MsgPacker))]
@@ -248,17 +254,23 @@ impl From<log_protobuf::log::Address> for Address {
 pub struct Log {
     #[cfg_attr(feature = "minicbor", n(0))]
     pub address: Address,
+    #[cfg_attr(feature = "byten", byten($bytes[u16 $be] $utf8 $own))]
     #[cfg_attr(feature = "minicbor", b(1))]
     pub identity: String,
+    #[cfg_attr(feature = "byten", byten($bytes[u16 $be] $utf8 $own))]
     #[cfg_attr(feature = "minicbor", b(2))]
     pub userid: String,
+    #[cfg_attr(feature = "byten", byten($bytes[u16 $be] $utf8 $own))]
     #[cfg_attr(feature = "minicbor", b(3))]
     pub date: String,
+    #[cfg_attr(feature = "byten", byten($bytes[u16 $be] $utf8 $own))]
     #[cfg_attr(feature = "minicbor", b(4))]
     pub request: String,
+    #[cfg_attr(feature = "byten", byten($be))]
     #[cfg_attr(feature = "wiring", fixed)]
     #[cfg_attr(feature = "minicbor", n(5))]
     pub code: u16,
+    #[cfg_attr(feature = "byten", byten($be))]
     #[cfg_attr(feature = "minicbor", n(6))]
     pub size: u64,
 }
@@ -267,23 +279,30 @@ pub struct Log {
 #[cfg_attr(feature = "bilrost", derive(bilrost::Message))]
 #[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::BorrowDecode))]
 #[cfg_attr(feature = "bitcode", derive(bitcode::Encode, bitcode::Decode))]
+#[cfg_attr(feature = "byten", derive(byten::DefaultCodec, byten::Decode, byten::Encode, byten::Measure))]
 #[cfg_attr(feature = "databuf", derive(databuf::Encode, databuf::Decode))]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "speedy", derive(speedy::Readable, speedy::Writable))]
-pub struct BorrowLog<'a> {
+pub struct BorrowLog<'encoded> {
     #[cfg_attr(feature = "minicbor", n(0))]
     pub address: Address,
+    #[cfg_attr(feature = "byten", byten($bytes[u16 $be] $utf8))]
     #[cfg_attr(feature = "minicbor", b(1))]
-    pub identity: &'a str,
+    pub identity: &'encoded str,
+    #[cfg_attr(feature = "byten", byten($bytes[u16 $be] $utf8))]
     #[cfg_attr(feature = "minicbor", b(2))]
-    pub userid: &'a str,
+    pub userid: &'encoded str,
+    #[cfg_attr(feature = "byten", byten($bytes[u16 $be] $utf8))]
     #[cfg_attr(feature = "minicbor", b(3))]
-    pub date: &'a str,
+    pub date: &'encoded str,
+    #[cfg_attr(feature = "byten", byten($bytes[u16 $be] $utf8))]
     #[cfg_attr(feature = "minicbor", b(4))]
-    pub request: &'a str,
+    pub request: &'encoded str,
+    #[cfg_attr(feature = "byten", byten($be))]
     #[cfg_attr(feature = "minicbor", n(5))]
     pub code: u16,
+    #[cfg_attr(feature = "byten", byten($be))]
     #[cfg_attr(feature = "minicbor", n(6))]
     pub size: u64,
 }
@@ -497,6 +516,7 @@ impl From<log_protobuf::log::Log> for Log {
     feature = "borsh",
     derive(borsh::BorshSerialize, borsh::BorshDeserialize)
 )]
+#[cfg_attr(feature = "byten", derive(byten::DefaultCodec, byten::DecodeOwned, byten::Encode, byten::Measure))]
 #[cfg_attr(feature = "databuf", derive(databuf::Encode, databuf::Decode))]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 #[cfg_attr(feature = "msgpacker", derive(msgpacker::MsgPacker))]
@@ -521,6 +541,7 @@ impl From<log_protobuf::log::Log> for Log {
 #[cfg_attr(feature = "wiring", derive(Wiring, Unwiring))]
 pub struct Logs {
     #[cfg_attr(feature = "bilrost", bilrost(encoding(packed)))]
+    #[cfg_attr(feature = "byten", byten(Log for[u16 $be]))]
     #[cfg_attr(feature = "minicbor", n(0))]
     pub logs: Vec<Log>,
 }
@@ -529,15 +550,17 @@ pub struct Logs {
 #[cfg_attr(feature = "bilrost", derive(bilrost::Message))]
 #[cfg_attr(feature = "bincode", derive(bincode::Encode, bincode::BorrowDecode))]
 #[cfg_attr(feature = "bitcode", derive(bitcode::Encode, bitcode::Decode))]
+#[cfg_attr(feature = "byten", derive(byten::DefaultCodec, byten::Decode, byten::Encode, byten::Measure))]
 #[cfg_attr(feature = "databuf", derive(databuf::Encode, databuf::Decode))]
 #[cfg_attr(feature = "minicbor", derive(minicbor::Encode, minicbor::Decode))]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "speedy", derive(speedy::Readable, speedy::Writable))]
-pub struct BorrowLogs<'a> {
+pub struct BorrowLogs<'encoded> {
     #[cfg_attr(feature = "bilrost", bilrost(encoding(packed)))]
+    #[cfg_attr(feature = "byten", byten(BorrowLog<'encoded> for[u16 $be]))]
     #[cfg_attr(feature = "minicbor", b(0))]
     #[serde(borrow)]
-    logs: Vec<BorrowLog<'a>>,
+    logs: Vec<BorrowLog<'encoded>>,
 }
 
 impl From<BorrowLogs<'_>> for Logs {

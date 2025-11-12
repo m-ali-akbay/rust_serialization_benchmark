@@ -50,6 +50,7 @@ bincode1 = { package = "bincode", version = "=1.3.3", optional = true }
 bincode = { package = "bincode", version = "=2.0.1", optional = true }
 bitcode = { version = "=0.6.6", optional = true }
 borsh = { version = "=1.5.7", features = ["derive"], optional = true }
+byten = { version = "=0.0.13", optional = true }
 capnp = { version = "=0.21.1", optional = true }
 cbor4ii = { version = "=1.0.0", features = [
     "use_std",
@@ -107,6 +108,7 @@ default-encoding-set = [
     "bincode",
     "bitcode",
     "borsh",
+    "byten",
     "capnp",
     "cbor4ii",
     "ciborium",
